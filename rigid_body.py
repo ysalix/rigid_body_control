@@ -1,10 +1,17 @@
 import numpy as np
+import quaternion as npq
 from scipy.integrate import solve_ivp
 
 
 class RigidBody:
     def __init__(self, inertia_tensor, angular_velocity, quaternion=None):
         self.inertia_tensor = inertia_tensor
+        principal_moment_of_inertias = np.linalg.eigvals(inertia_tensor)
+        assert np.all(principal_moment_of_inertias > 0)
+        for i in range(3):
+            a, b, c = np.roll(principal_moment_of_inertias, i)
+            assert a + b >= c
+
         self.angular_velocity = angular_velocity
         if quaternion is not None:
             self.quaternion = quaternion
