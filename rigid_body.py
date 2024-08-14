@@ -25,9 +25,12 @@ class RigidBody:
     def equations_of_motion(self, time, state):
         angular_velocity = state[:3]
         quaternion = np.quaternion(*state[3:7])
-        torque = self.controller.calculate_torque_from(
-            angular_velocity, quaternion
-        )
+        if self.controller is not None:
+            torque = self.controller.calculates_torque_from(
+                angular_velocity, quaternion
+            )
+        else:
+            torque = np.array([0, 0, 0])
         angular_acceleration = np.linalg.inv(self.inertia_tensor) @ (
             torque
             - np.cross(
