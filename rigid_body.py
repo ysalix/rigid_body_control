@@ -4,23 +4,32 @@ from scipy.integrate import solve_ivp
 
 
 class RigidBody:
-    def __init__(self, inertia_tensor, angular_velocity, quaternion=None):
+    def __init__(
+        self, inertia_tensor, initial_angular_velocity, initial_quaternion=None
+    ):
         self.inertia_tensor = inertia_tensor
-        principal_moment_of_inertias = np.linalg.eigvals(inertia_tensor)
-        assert np.all(principal_moment_of_inertias > 0)
+        if self.is_invalid():
+            raise ValueError("Inertia tensor is invalid")
+        self.initial_angular_velocity = initial_angular_velocity
+        self.initial_quaternion = (
+            initial_quaternion
+            if initial_quaternion is not None
+            else np.quaternion(1, 0, 0, 0)
+        )
+
+    def is_invalid(self):
+        principal_moments = np.linalg.eigvals(self.inertia_tensor)
+        if not np.all(principal_moments > 0):
+            return True
         for i in range(3):
-            a, b, c = np.roll(principal_moment_of_inertias, i)
-            assert a + b >= c
+            a, b, c = np.roll(principal_moments, i)
+            if a + b < c:
+                return True
+        return False
 
-        self.angular_velocity = angular_velocity
-        if quaternion is not None:
-            self.quaternion = quaternion
-        else:
-            self.quaternion = np.quaternion(1, 0, 0, 0)
-
-    def equations_of_motion(self, t, y):
-        angular_velocity = y[:3]
-        quaternion = np.quaternion(*y[3:7])
+    def equations_of_motion(self, time, state):
+        angular_velocity = state[:3]
+        quaternion = np.quaternion(*state[3:7])
         angular_acceleration = np.linalg.inv(self.inertia_tensor) @ -np.cross(
             angular_velocity, self.inertia_tensor @ angular_velocity
         )
@@ -31,8 +40,20 @@ class RigidBody:
             [angular_acceleration, quaternion_derivative.components]
         )
 
-    def integrate(self, t_span, t_eval=None):
-        y0 = np.hstack([self.angular_velocity, self.quaternion.components])
-        return solve_ivp(
-            self.equations_of_motion, t_span, y0, t_eval=t_eval, method="RK45"
+    def integrated_over(self, time_span, time_step):
+        initial_state = np.hstack(
+            [
+                self.initial_angular_velocity,
+                self.initial_quaternion.components,
+            ]
         )
+        solution = solve_ivp(
+            fun=self.equations_of_motion,
+            t_span=time_span,
+            y0=initial_state,
+            t_eval=np.arange(*time_span, time_step),
+            method="RK45",
+        )
+        self.time_history = solution.t
+        self.angular_velocity_history = solution.y.T[:, 0:3]
+        self.quaternion_history = solution.y.T[:, 3:7]
