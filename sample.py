@@ -2,13 +2,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from rigid_body import RigidBody
+from controller import Mortensen1968
 
-time_span = (0, 30)
+time_span = (0, 20)
 time_step = 0.01
 
 rigid_body = RigidBody(
-    inertia_tensor=np.diag([0.2, 0.8, 1]),
+    inertia_tensor=np.diag([0.3, 0.8, 1]),
     initial_angular_velocity=[0.5, 0.5, 0.3],
+    controller=Mortensen1968(angular_velocity_gain=0.5, quaternion_gain=0.5),
 )
 rigid_body.integrated_over(time_span, time_step)
 

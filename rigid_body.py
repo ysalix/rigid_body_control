@@ -4,18 +4,13 @@ from scipy.integrate import solve_ivp
 
 
 class RigidBody:
-    def __init__(
-        self, inertia_tensor, initial_angular_velocity, initial_quaternion=None
-    ):
+    def __init__(self, inertia_tensor, initial_angular_velocity, controller):
         self.inertia_tensor = inertia_tensor
         if self.is_invalid():
             raise ValueError("Inertia tensor is invalid")
         self.initial_angular_velocity = initial_angular_velocity
-        self.initial_quaternion = (
-            initial_quaternion
-            if initial_quaternion is not None
-            else np.quaternion(1, 0, 0, 0)
-        )
+        self.initial_quaternion = np.quaternion(1, 0, 0, 0)
+        self.controller = controller
 
     def is_invalid(self):
         principal_moments = np.linalg.eigvals(self.inertia_tensor)
@@ -30,8 +25,14 @@ class RigidBody:
     def equations_of_motion(self, time, state):
         angular_velocity = state[:3]
         quaternion = np.quaternion(*state[3:7])
-        angular_acceleration = np.linalg.inv(self.inertia_tensor) @ -np.cross(
-            angular_velocity, self.inertia_tensor @ angular_velocity
+        torque = self.controller.calculate_torque_from(
+            angular_velocity, quaternion
+        )
+        angular_acceleration = np.linalg.inv(self.inertia_tensor) @ (
+            torque
+            - np.cross(
+                angular_velocity, self.inertia_tensor @ angular_velocity
+            )
         )
         quaternion_derivative = (
             0.5 * quaternion * np.quaternion(0, *angular_velocity)
