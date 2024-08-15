@@ -13,11 +13,11 @@ class RigidBody:
         self.controller = controller
 
     def is_invalid(self):
-        principal_moments = np.linalg.eigvals(self.inertia_tensor)
-        if not np.all(principal_moments > 0):
+        principal_moment_of_inertia = np.linalg.eigvals(self.inertia_tensor)
+        if not np.all(principal_moment_of_inertia > 0):
             return True
         for i in range(3):
-            a, b, c = np.roll(principal_moments, i)
+            a, b, c = np.roll(principal_moment_of_inertia, i)
             if a + b < c:
                 return True
         return False
