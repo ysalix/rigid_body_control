@@ -8,11 +8,11 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 class Cuboid:
     def __init__(self, inertia_tensor):
         principal_moment_of_inertia = np.linalg.eigvals(inertia_tensor)
-        dimensions = []
+        dimensions = np.ones(3) * 0.1
         for i in range(3):
             a, b, c = np.roll(principal_moment_of_inertia, i)
             if a + b - c:
-                dimensions.append(1 / np.sqrt(a + b - c))
+                dimensions[i] = 1 / np.sqrt(a + b - c)
         dimensions /= np.linalg.norm(dimensions)
 
         self.vertices = (
@@ -64,12 +64,11 @@ class Cuboid:
 
 class Plot3D:
     def __init__(self, rigid_body):
-        self.quaternion_history = rigid_body.quaternion_history
         self.figure = plt.figure()
         self.axis = self.figure.add_subplot(111, projection="3d")
         self.cuboid = Cuboid(rigid_body.inertia_tensor)
 
-    def show(self):
+    def show(self, result):
         def init():
             self.axis.set_xlim([-1, 1])
             self.axis.set_ylim([-1, 1])
@@ -79,15 +78,13 @@ class Plot3D:
             for collection in self.axis.collections:
                 collection.remove()
             self.axis.add_collection3d(
-                self.cuboid.polygon(
-                    npq.quaternion(*self.quaternion_history[frame])
-                )
+                self.cuboid.polygon(npq.quaternion(*result.quaternion[frame]))
             )
 
         self.animation = FuncAnimation(
             self.figure,
             update,
-            frames=len(self.quaternion_history),
+            frames=len(result.time),
             init_func=init,
             interval=10,
         )

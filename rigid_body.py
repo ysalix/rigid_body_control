@@ -1,6 +1,15 @@
+from dataclasses import dataclass
+
 import numpy as np
 import quaternion as npq
 from scipy.integrate import solve_ivp
+
+
+@dataclass
+class Result:
+    time: np.ndarray
+    angular_velocity: np.ndarray
+    quaternion: np.ndarray
 
 
 class RigidBody:
@@ -58,6 +67,8 @@ class RigidBody:
             t_eval=np.arange(*time_span, time_step),
             method="RK45",
         )
-        self.time_history = solution.t
-        self.angular_velocity_history = solution.y.T[:, 0:3]
-        self.quaternion_history = solution.y.T[:, 3:7]
+        return Result(
+            time=solution.t,
+            angular_velocity=solution.y.T[:, 0:3],
+            quaternion=solution.y.T[:, 3:7],
+        )

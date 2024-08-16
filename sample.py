@@ -1,31 +1,18 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
-from rigid_body import RigidBody
 from controller import Mortensen1968
+from plot import Plot3D
+from rigid_body import RigidBody
 
-time_span = (0, 10)
+time_span = (0, 15)
 time_step = 0.01
 
 rigid_body = RigidBody(
-    inertia_tensor=np.diag([0.3, 0.8, 1]),
-    initial_angular_velocity=np.array([0.5, 0.5, 0.3]),
-    controller=Mortensen1968(),
+    inertia_tensor=np.diag([0.3, 0.7, 1]),
+    initial_angular_velocity=np.array([0.1, 5, 0]),
+    controller=None,
 )
-rigid_body.integrated_over(time_span, time_step)
+plot = Plot3D(rigid_body)
 
-plt.figure(dpi=300)
-plt.plot(
-    rigid_body.time_history,
-    rigid_body.angular_velocity_history,
-)
-plt.xlim(time_span)
-plt.legend(["$\omega_1$", "$\omega_2$", "$\omega_3$"])
-
-plt.figure(dpi=300)
-plt.plot(
-    rigid_body.time_history,
-    rigid_body.quaternion_history,
-)
-plt.xlim(time_span)
-plt.legend(["$q_1$", "$q_2$", "$q_3$", "$q_4$"])
+result = rigid_body.integrated_over(time_span, time_step)
+plot.show(result)
