@@ -14,5 +14,5 @@ rigid_body = RigidBody(
 )
 plot = Plot3D(rigid_body)
 
-result = rigid_body.integrated_over(time_span, time_step)
-plot.show(result)
+results = rigid_body.integrated_over(time_span, time_step)
+plot.show(results, time_step)

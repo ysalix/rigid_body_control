@@ -68,11 +68,17 @@ class Plot3D:
         self.axis = self.figure.add_subplot(111, projection="3d")
         self.cuboid = Cuboid(rigid_body.inertia_tensor)
 
-    def show(self, result):
+    def show(self, result, time_step):
         def init():
             self.axis.set_xlim([-1, 1])
             self.axis.set_ylim([-1, 1])
             self.axis.set_zlim([-1, 1])
+            self.axis.set_xticks([-1, 0, 1])
+            self.axis.set_yticks([-1, 0, 1])
+            self.axis.set_zticks([-1, 0, 1])
+            self.axis.set_xlabel("$x$")
+            self.axis.set_ylabel("$y$")
+            self.axis.set_zlabel("$z$")
 
         def update(frame):
             for collection in self.axis.collections:
@@ -86,5 +92,5 @@ class Plot3D:
             update,
             frames=len(result.time),
             init_func=init,
-            interval=10,
+            interval=1000 * time_step,
         )

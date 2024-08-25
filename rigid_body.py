@@ -6,7 +6,7 @@ from scipy.integrate import solve_ivp
 
 
 @dataclass
-class Result:
+class Results:
     time: np.ndarray
     angular_velocity: np.ndarray
     quaternion: np.ndarray
@@ -67,7 +67,7 @@ class RigidBody:
             t_eval=np.arange(*time_span, time_step),
             method="RK45",
         )
-        return Result(
+        return Results(
             time=solution.t,
             angular_velocity=solution.y.T[:, 0:3],
             quaternion=solution.y.T[:, 3:7],
